@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+[[ " images images:promote images:help help " == *" $1 "* ]] || exit $DOKKU_NOT_IMPLEMENTED_EXIT
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
+source "$PLUGIN_AVAILABLE_PATH/domains/functions"
+source "$PLUGIN_AVAILABLE_PATH/nginx-vhosts/functions"
+
+case "$1" in
+  images)
+    [[ -z $2 ]] && dokku_log_fail "Please specify an app to run the command on"
+    verify_app_name "$2"
+    APP="$2"
+    docker images | grep dokku/$APP | sed -e 's/^dokku\///g'
+
+    ;;
+
+  images:promote)
+    [[ -z $2 ]] && dokku_log_fail "Please specify a TAG to run the command on"
+    if [[ "$2" == *":"* ]]; then
+	APP=`echo $2 | cut -d ':' -f1`
+	TAG=`echo $2 | cut -d ':' -f2`
+    else
+    	APP="$2"
+    	TAG="$3"
+    fi
+    verify_app_name "$APP"
+    docker tag dokku/$APP $REGISTRY_STAGE/$APP:$TAG
+    docker push $REGISTRY_STAGE/$APP:$TAG
+    ;;
+    #dokku domains:setup $APP
+
+  help | images:help)
+    cat<<EOF
+    images <app>, List images for app
+    images:promote <app> <tag>, Promotes an image to Stage ECR
+EOF
+    ;;
+
+  *)
+    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    ;;
+
+esac
