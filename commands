@@ -24,7 +24,7 @@ case "$1" in
     	TAG="$3"
     fi
     verify_app_name "$APP"
-    docker tag dokku/$APP $REGISTRY_STAGE/$APP:$TAG
+    docker tag -f dokku/$APP:$TAG $REGISTRY_STAGE/$APP:$TAG  #TODO: remove -f
     docker push $REGISTRY_STAGE/$APP:$TAG
     ;;
     #dokku domains:setup $APP
