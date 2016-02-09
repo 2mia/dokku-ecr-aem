@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[[ " images images:promote images:help help " == *" $1 "* ]] || exit $DOKKU_NOT_IMPLEMENTED_EXIT
+[[ " images images:push images:help help " == *" $1 "* ]] || exit $DOKKU_NOT_IMPLEMENTED_EXIT
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
 source "$PLUGIN_AVAILABLE_PATH/domains/functions"
@@ -14,8 +14,14 @@ case "$1" in
 
     ;;
 
-  images:promote)
+  images:push)
     [[ -z $2 ]] && dokku_log_fail "Please specify a TAG to run the command on"
+    if [ -z $4 ]; then
+	TO_REGISTRY=$REGISTRY_STAGE
+    else
+        _ENV=`echo $4 | tr 'a-z' 'A-Z'` 
+	TO_REGISTRY=$(eval echo \$REGISTRY_$_ENV) 
+    fi
     if [[ "$2" == *":"* ]]; then
 	APP=`echo $2 | cut -d ':' -f1`
 	TAG=`echo $2 | cut -d ':' -f2`
@@ -24,8 +30,8 @@ case "$1" in
     	TAG="$3"
     fi
     verify_app_name "$APP"
-    docker tag -f dokku/$APP:$TAG $REGISTRY_STAGE/$APP:$TAG  #TODO: remove -f
-    docker push $REGISTRY_STAGE/$APP:$TAG
+    docker tag -f dokku/$APP:$TAG $TO_REGISTRY/$APP:$TAG  #TODO: remove -f
+    docker push $TO_REGISTRY/$APP:$TAG
     ;;
     #dokku domains:setup $APP
 
