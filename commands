@@ -38,7 +38,7 @@ case "$1" in
   help | images:help)
     cat<<EOF
     images <app>, List images for app
-    images:promote <app> <tag>, Promotes an image to Stage ECR
+    images:push <app> <tag>, Promotes an image to Stage ECR
 EOF
     ;;
 
